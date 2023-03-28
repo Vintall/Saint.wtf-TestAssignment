@@ -7,7 +7,7 @@ public class Structures
     public enum ResourceType
     {
         Apple,
-        Watermellon,
+        Watermelon,
         Peach
     }
     [System.Serializable]
@@ -28,5 +28,14 @@ public class Structures
     {
         Input,
         Output
+    }
+    [System.Serializable]
+    public struct ResourceTypeWithAsset
+    {
+        [SerializeField] ResourceType type;
+        [SerializeField] GameObject gameObject;
+
+        public ResourceType Type => type;
+        public GameObject Object => gameObject;
     }
 }
