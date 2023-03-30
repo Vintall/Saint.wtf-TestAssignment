@@ -6,6 +6,7 @@ public class ItemPlate : MonoBehaviour
 {
     [SerializeField] int capacityPerItem;
     public int CapacityPerItem => capacityPerItem;
+    protected bool isPlayerOnPlate;
 
     Structures.ItemPlateType plateType;
     Dictionary<Structures.ResourceType, Stack<ResourceItem>> resourceSlots;
@@ -29,14 +30,17 @@ public class ItemPlate : MonoBehaviour
 
         return CapacityPerItem - resourceSlots[type].Count;
     }
-
-    private void OnCollisionStay(Collision collision)
+    private void OnTriggerEnter(Collider other)
     {
-        if (collision.transform.tag == "Player")
-            OnPlayerCollision(collision);
+        if (other.transform.tag == "Player")
+            OnPlayerCollisionEnter(other);
     }
-    void OnPlayerCollision(Collision collision)
+    private void OnTriggerExit(Collider other)
     {
-
+        if (other.transform.tag == "Player")
+            OnPlayerCollisionExit(other);
     }
+    protected virtual void OnPlayerCollisionEnter(Collider collider) => Debug.Log($"Virtual Metod Called");
+
+    protected virtual void OnPlayerCollisionExit(Collider collider) => Debug.Log($"Virtual Metod Called");
 }

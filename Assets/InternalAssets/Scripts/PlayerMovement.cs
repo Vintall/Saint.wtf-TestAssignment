@@ -17,5 +17,7 @@ public class PlayerMovement : MonoBehaviour
             Debug.LogError("PlayerMovement does hot have the rigidbody reference");
 
         rb.AddForce(new Vector3(x_offset, 0, y_offset) * movingSpeed, ForceMode.Impulse);
+
+        transform.LookAt(new Vector3(x_offset, 0, y_offset) + transform.position);
     }
 }
