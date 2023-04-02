@@ -9,6 +9,9 @@ public class OutputItemPlate : ItemPlate
         isPlayerOnPlate = true;
         playerCollider = collider;
 
+        if (isTransferCycleActive)
+            return;
+
         isTransferCycleActive = true;
         StartCoroutine(TransferCycle(collider));
     }
@@ -33,16 +36,17 @@ public class OutputItemPlate : ItemPlate
     bool isTransferCycleActive = false;
     IEnumerator TransferCycle(Collider collider)
     {
-        PlayerInventory inventory = collider.gameObject.GetComponent<PlayerInventory>();
+        PlayerInventory playerInventory = collider.gameObject.GetComponent<PlayerInventory>();
 
-        foreach (KeyValuePair<Structures.ResourceType, Stack<ResourceItem>> plateResourceSlot in ResourceSlots)
+        foreach (KeyValuePair<Structures.ResourceType, InventorySlot> plateResourceSlot in Inventory.InventoryStorage)// inventory.Inventory.InventoryStorage)
         {
-            (Stack<ResourceItem>, Transform) playerResourceSlot = inventory.GetResourceInventory(plateResourceSlot.Key);
+            Transform playerResourceTransform = playerInventory.GetResourceTransform(plateResourceSlot.Key);
+            InventorySlot playerResourceSlot = playerInventory.GetResourceSlot(plateResourceSlot.Key);
 
-            if (playerResourceSlot.Item1.Count == PlayerInventory.CapacityPerStack)
+            if (playerResourceSlot.ItemsCount == PlayerInventory.CapacityPerSlot)
                 continue;
 
-            if (ResourceSlots[plateResourceSlot.Key].Count == 0)
+            if (plateResourceSlot.Value.ItemsCount == 0)
                 continue;
             
             yield return StartCoroutine(StartTransfering());
@@ -50,13 +54,13 @@ public class OutputItemPlate : ItemPlate
             IEnumerator StartTransfering()
             {
                 isTransferCycleActive = true;
-                ResourceItem item = plateResourceSlot.Value.Pop();
+                ResourceItem item = plateResourceSlot.Value.PopItem();
 
-                yield return StartCoroutine(Factory.LerpResource(item, item.transform.position, playerResourceSlot.Item2));
+                yield return StartCoroutine(Factory.LerpResource(item, item.transform.position, playerResourceTransform));
 
-                item.gameObject.transform.position = playerResourceSlot.Item2.position + Vector3.up * 0.2f * playerResourceSlot.Item1.Count;
-                item.gameObject.transform.parent = playerResourceSlot.Item2;
-                playerResourceSlot.Item1.Push(item);
+                item.gameObject.transform.position = playerResourceTransform.position + Vector3.up * 0.2f * playerResourceSlot.ItemsCount;
+                item.gameObject.transform.parent = playerResourceTransform;
+                playerResourceSlot.PushItem(item);
             }
         }
         isTransferCycleActive = false;

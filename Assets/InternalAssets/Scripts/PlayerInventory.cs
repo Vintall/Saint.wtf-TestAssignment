@@ -1,21 +1,29 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 public class PlayerInventory : MonoBehaviour
 {
     [SerializeField] Transform[] stackHolders;
+    Dictionary<Structures.ResourceType, Transform> stackHoldersDictionary;
 
-    Dictionary<Structures.ResourceType, (Stack<ResourceItem>, Transform)> stackInventory;
-    public (Stack<ResourceItem>, Transform) GetResourceInventory(Structures.ResourceType type) => stackInventory[type];
-    public const int CapacityPerStack = 20;
+    public const int CapacityPerSlot = 20;
+    Inventory inventory;
 
+    public Inventory Inventory => inventory;
+    //public Structures.ResourceType AllSlotTypes => inventory. 
+    public InventorySlot GetResourceSlot(Structures.ResourceType type) => inventory[type];
+    public Transform GetResourceTransform(Structures.ResourceType type) => stackHoldersDictionary[type];
+    
     private void Awake()
     {
-        stackInventory = new Dictionary<Structures.ResourceType, (Stack<ResourceItem>, Transform)>();
+        stackHoldersDictionary = new Dictionary<Structures.ResourceType, Transform>();
 
-        foreach (Structures.ResourceType type in System.Enum.GetValues(typeof(Structures.ResourceType)))
-            stackInventory.Add(type, (new Stack<ResourceItem>(), stackHolders[(int)type]));
+        foreach (Structures.ResourceType resourceType in Structures.AllResourceTypes)
+            stackHoldersDictionary.Add(resourceType, stackHolders[(int)resourceType]);
+        
+        inventory = new Inventory(CapacityPerSlot, Structures.AllResourceTypes);
     }
 
 }

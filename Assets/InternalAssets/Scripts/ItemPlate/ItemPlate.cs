@@ -4,32 +4,29 @@ using UnityEngine;
 
 public class ItemPlate : MonoBehaviour
 {
-    [SerializeField] int capacityPerItem;
-    public int CapacityPerItem => capacityPerItem;
+    [SerializeField] int capacityPerSlot;
+    public int CapacityPerItem => capacityPerSlot;
     protected bool isPlayerOnPlate;
 
-    Structures.ItemPlateType plateType;
-    Dictionary<Structures.ResourceType, Stack<ResourceItem>> resourceSlots;
-    public Dictionary<Structures.ResourceType, Stack<ResourceItem>> ResourceSlots => resourceSlots;
+    //Dictionary<Structures.ResourceType, Stack<ResourceItem>> resourceSlots;
 
-    Factory parentFactory;
+    Inventory inventory;
+    public Inventory Inventory => inventory;
+    //public Dictionary<Structures.ResourceType, Stack<ResourceItem>> ResourceSlots => resourceSlots;
 
-    public void InitPlate(in Factory parentFactory, Structures.ItemPlateType plateType, List<Structures.ResourceWithQuantity> resourceTypes)
+    public void InitPlate(List<Structures.ResourceType> resourceTypes) => inventory = new Inventory(capacityPerSlot, resourceTypes);
+    public void InitPlate(List<Structures.ResourceWithQuantity> resourceTypes)
     {
-        this.parentFactory = parentFactory;
-        this.plateType = plateType;
-        this.resourceSlots = new Dictionary<Structures.ResourceType, Stack<ResourceItem>>();
+        List<Structures.ResourceType> bufferList = new List<Structures.ResourceType>();
 
-        foreach (Structures.ResourceWithQuantity resourceType in resourceTypes)
-            resourceSlots.Add(resourceType.Type, new Stack<ResourceItem>());
-    }
-    public int SpaceRemained(Structures.ResourceType type)
-    {
-        if (!resourceSlots.ContainsKey(type))
-            return -1;
+        foreach (Structures.ResourceWithQuantity item in resourceTypes)
+            bufferList.Add(item.Type);
 
-        return CapacityPerItem - resourceSlots[type].Count;
+        InitPlate(bufferList);
     }
+
+    public int? SpaceRemained(Structures.ResourceType type) => inventory[type]?.SpaceRemained;
+
     private void OnTriggerEnter(Collider other)
     {
         if (other.transform.tag == "Player")

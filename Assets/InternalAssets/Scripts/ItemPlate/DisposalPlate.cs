@@ -2,15 +2,12 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class InputItemPlate : ItemPlate
+public class DisposalPlate : ItemPlate
 {
     protected override void OnPlayerCollisionEnter(Collider collider)
     {
         isPlayerOnPlate = true;
         playerCollider = collider;
-
-        if (isTransferCycleActive)
-            return;
 
         isTransferCycleActive = true;
         StartCoroutine(TransferCycle(collider));
@@ -36,15 +33,12 @@ public class InputItemPlate : ItemPlate
     bool isTransferCycleActive = false;
     IEnumerator TransferCycle(Collider collider)
     {
-        PlayerInventory playerInventory = collider.gameObject.GetComponent<PlayerInventory>();
-        
-        foreach (KeyValuePair<Structures.ResourceType, InventorySlot> plateResourceSlot in Inventory.InventoryStorage)
-        {
-            InventorySlot playerResourceSlot = playerInventory.GetResourceSlot(plateResourceSlot.Key);
-            Transform playerResourceTransform = playerInventory.GetResourceTransform(plateResourceSlot.Key);
+        PlayerInventory inventory = collider.gameObject.GetComponent<PlayerInventory>();
 
-            if (plateResourceSlot.Value.ItemsCount == CapacityPerItem)
-                continue;
+        foreach (Structures.ResourceType resourceType in Structures.AllResourceTypes)
+        {
+            InventorySlot playerResourceSlot = inventory.GetResourceSlot(resourceType);
+            Transform playerResourceTransform = inventory.GetResourceTransform(resourceType);
 
             if (playerResourceSlot.ItemsCount == 0)
                 continue;
@@ -58,9 +52,10 @@ public class InputItemPlate : ItemPlate
 
                 yield return StartCoroutine(Factory.LerpResource(item, item.transform.position, transform.position
                     + new Vector3(Random.Range(-1f, 1f), 0.5f, Random.Range(-1f, 1f))));
-                
-                item.gameObject.transform.parent = transform; // Bring it up to 'before the lerp'
-                plateResourceSlot.Value.PushItem(item);
+
+                item.gameObject.transform.parent = transform;
+
+                ResourcesPool.PlaceResource(item);
 
                 yield return null;
             }

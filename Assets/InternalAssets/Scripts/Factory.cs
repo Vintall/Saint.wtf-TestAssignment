@@ -1,28 +1,33 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
+using TMPro;
 using UnityEngine;
 
 
 public class Factory : MonoBehaviour
 {
-    [SerializeField] List<Structures.ResourceWithQuantity> requirements;
-    [SerializeField] List<Structures.ResourceWithQuantity> produce;
+    [SerializeField] FactoryPresetScriptableObject factoryPreset;
 
     [SerializeField] ItemPlate inputPlate;
     [SerializeField] ItemPlate outputPlate;
 
-    [SerializeField] float produceTime;
-
-    //bool isProducing = false;
+    [SerializeField] TextMeshProUGUI uiLogger;
 
     bool IsHaveSpace
     {
         get
         {
-            foreach (Structures.ResourceWithQuantity product in produce)
+            if (outputPlate == null)
+                return true;
+
+            foreach (Structures.ResourceWithQuantity product in factoryPreset.Produce)
                 if (outputPlate.SpaceRemained(product.Type) < product.Quantity)
+                {
+                    if (uiLogger != null)
+                        uiLogger.text = "Require More Space";
                     return false;
+                }
 
             return true;
         }
@@ -31,30 +36,38 @@ public class Factory : MonoBehaviour
     {
         get
         {
-            foreach (Structures.ResourceWithQuantity product in requirements)
-                if (inputPlate.ResourceSlots[product.Type].Count < product.Quantity)
+            if (inputPlate == null)
+                return true;
+
+            foreach (Structures.ResourceWithQuantity requirement in factoryPreset.Requirements)
+                if (inputPlate.Inventory[requirement.Type].ItemsCount < requirement.Quantity)
+                {
+                    if (uiLogger != null)
+                        uiLogger.text = $"Require More {requirement.Type.ToString()}s";
                     return false;
+                }
 
             return true;
         }
     }
-
-    private void Start()
+    public void InitFactory()
     {
         if (inputPlate != null)
-            inputPlate.InitPlate(this, Structures.ItemPlateType.Input, requirements);
+            inputPlate.InitPlate(factoryPreset.Requirements);
 
         if (outputPlate != null)
-            outputPlate.InitPlate(this, Structures.ItemPlateType.Output, produce);
-
+            outputPlate.InitPlate(factoryPreset.Produce);
 
         StartCoroutine(RequirementsCheck());
     }
+    private void Start() => InitFactory();
     IEnumerator RequirementsCheck()
     {
         yield return new WaitUntil(() => IsHaveRequirements);
         yield return new WaitUntil(() => IsHaveSpace);
-        //yield return new WaitUntil(() => !isProducing);
+
+        if (uiLogger != null)
+            uiLogger.text = "Up and Running";
 
         StartCoroutine(ProducingCycle());
     }
@@ -62,33 +75,31 @@ public class Factory : MonoBehaviour
     {
         yield return StartCoroutine(RemoveInput());
 
-        yield return new WaitForSeconds(produceTime);
+        yield return new WaitForSeconds(factoryPreset.ProduceTime);
 
         yield return StartCoroutine(AddOutput());
     }
     IEnumerator RemoveInput()
     {
-        if (requirements == null)
+        if (factoryPreset.Requirements == null)
             yield return null;
 
-        foreach (Structures.ResourceWithQuantity product in requirements)
+        foreach (Structures.ResourceWithQuantity product in factoryPreset.Requirements)
             for (int i = 0; i < product.Quantity; ++i)
             {
-                ResourceItem item = inputPlate.ResourceSlots[product.Type].Pop();
+                ResourceItem item = inputPlate.Inventory[product.Type].PopItem();
 
-                StartCoroutine(LerpResource(item, item.gameObject.transform.position, transform.position));
-
-                yield return new WaitForSeconds(1);
+                yield return StartCoroutine(LerpResource(item, item.gameObject.transform.position, transform.position));
 
                 ResourcesPool.PlaceResource(item);
             }
     }
     IEnumerator AddOutput()
     {
-        if (produce == null)
+        if (factoryPreset.Produce == null)
             yield return null;
 
-        foreach (Structures.ResourceWithQuantity product in produce)
+        foreach (Structures.ResourceWithQuantity product in factoryPreset.Produce)
             for (int i = 0; i < product.Quantity; ++i)
             {
                 ResourceItem item = ResourcesPool.PullResource(product.Type);
@@ -97,38 +108,41 @@ public class Factory : MonoBehaviour
                 item.gameObject.transform.parent = outputPlate.transform;
                 item.gameObject.SetActive(true);
 
-                StartCoroutine(LerpResource(item, transform.position, outputPlate.transform.position
+                yield return StartCoroutine(LerpResource(item, transform.position, outputPlate.transform.position
                      + new Vector3(Random.Range(-1f, 1f), 0.5f, Random.Range(-1f, 1f))));
 
-                yield return new WaitForSeconds(1);
-                outputPlate.ResourceSlots[product.Type].Push(item);
+                outputPlate.Inventory[product.Type].PushItem(item);
             }
 
         StartCoroutine(RequirementsCheck());
         yield return null;
     }
+
+    const float lerpTransferSpeed = 10;
+    const int lerpSteps = 30;
+    const float lerpStepAwait = 1f / lerpSteps / lerpTransferSpeed;
     public static IEnumerator LerpResource(ResourceItem item, Vector3 a, Vector3 b)
     {
-        for (int i = 0; i < 60; i++)
+        for (int i = 0; i < lerpSteps; ++i)
         {
-            item.transform.position = Vector3.Lerp(a, b, i / 60f);
-            yield return new WaitForSecondsRealtime(1 / 60f);
+            item.transform.position = Vector3.Lerp(a, b, (float)i / lerpSteps);
+            yield return new WaitForSecondsRealtime(lerpStepAwait);
         }
     }
     public static IEnumerator LerpResource(ResourceItem item, Vector3 a, Transform b)
     {
-        for (int i = 0; i < 60; i++)
+        for (int i = 0; i < lerpSteps; ++i)
         {
-            item.transform.position = Vector3.Lerp(a, b.position, i / 60f);
-            yield return new WaitForSecondsRealtime(1 / 60f);
+            item.transform.position = Vector3.Lerp(a, b.position, (float)i / lerpSteps);
+            yield return new WaitForSecondsRealtime(lerpStepAwait);
         }
     }
     public static IEnumerator LerpResource(ResourceItem item, Transform a, Vector3 b)
     {
-        for (int i = 0; i < 60; i++)
+        for (int i = 0; i < lerpSteps; ++i)
         {
-            item.transform.position = Vector3.Lerp(a.position, b, i / 60f);
-            yield return new WaitForSecondsRealtime(1 / 60f);
+            item.transform.position = Vector3.Lerp(a.position, b, (float)i / lerpSteps);
+            yield return new WaitForSecondsRealtime(lerpStepAwait);
         }
     }
 }

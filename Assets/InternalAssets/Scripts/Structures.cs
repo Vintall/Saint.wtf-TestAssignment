@@ -10,6 +10,21 @@ public class Structures
         Watermelon,
         Peach
     }
+    private static List<ResourceType> allResourceTypes = null;
+    public static List<ResourceType> AllResourceTypes
+    {
+        get
+        {
+            if(allResourceTypes == null)
+            {
+                allResourceTypes = new List<ResourceType>();
+                foreach (ResourceType resourceType in System.Enum.GetValues(typeof(ResourceType)))
+                    allResourceTypes.Add(resourceType);
+            }
+            return allResourceTypes;
+        }
+    }
+
     [System.Serializable]
     public struct ResourceWithQuantity
     {
