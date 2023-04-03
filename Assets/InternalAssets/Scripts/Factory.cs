@@ -26,6 +26,7 @@ public class Factory : MonoBehaviour
                 {
                     if (uiLogger != null)
                         uiLogger.text = "Require More Space";
+
                     return false;
                 }
 
@@ -44,6 +45,7 @@ public class Factory : MonoBehaviour
                 {
                     if (uiLogger != null)
                         uiLogger.text = $"Require More {requirement.Type.ToString()}s";
+
                     return false;
                 }
 
@@ -103,6 +105,7 @@ public class Factory : MonoBehaviour
             for (int i = 0; i < product.Quantity; ++i)
             {
                 ResourceItem item = ResourcesPool.PullResource(product.Type);
+                Debug.Log(item);
 
                 item.gameObject.transform.position = transform.position;
                 item.gameObject.transform.parent = outputPlate.transform;
@@ -118,7 +121,7 @@ public class Factory : MonoBehaviour
         yield return null;
     }
 
-    const float lerpTransferSpeed = 10;
+    const float lerpTransferSpeed = 600;
     const int lerpSteps = 30;
     const float lerpStepAwait = 1f / lerpSteps / lerpTransferSpeed;
     public static IEnumerator LerpResource(ResourceItem item, Vector3 a, Vector3 b)

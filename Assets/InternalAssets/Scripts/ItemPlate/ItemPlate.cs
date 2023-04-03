@@ -5,14 +5,11 @@ using UnityEngine;
 public class ItemPlate : MonoBehaviour
 {
     [SerializeField] int capacityPerSlot;
-    public int CapacityPerItem => capacityPerSlot;
     protected bool isPlayerOnPlate;
-
-    //Dictionary<Structures.ResourceType, Stack<ResourceItem>> resourceSlots;
-
     Inventory inventory;
+
+    public int CapacityPerItem => capacityPerSlot;
     public Inventory Inventory => inventory;
-    //public Dictionary<Structures.ResourceType, Stack<ResourceItem>> ResourceSlots => resourceSlots;
 
     public void InitPlate(List<Structures.ResourceType> resourceTypes) => inventory = new Inventory(capacityPerSlot, resourceTypes);
     public void InitPlate(List<Structures.ResourceWithQuantity> resourceTypes)
@@ -37,7 +34,7 @@ public class ItemPlate : MonoBehaviour
         if (other.transform.tag == "Player")
             OnPlayerCollisionExit(other);
     }
-    protected virtual void OnPlayerCollisionEnter(Collider collider) => Debug.Log($"Virtual Metod Called");
+    protected virtual void OnPlayerCollisionEnter(Collider collider) => Debug.LogError($"Virtual Metod Called");
 
-    protected virtual void OnPlayerCollisionExit(Collider collider) => Debug.Log($"Virtual Metod Called");
+    protected virtual void OnPlayerCollisionExit(Collider collider) => Debug.LogError($"Virtual Metod Called");
 }
