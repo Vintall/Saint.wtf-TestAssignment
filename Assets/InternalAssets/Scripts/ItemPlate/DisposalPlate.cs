@@ -33,12 +33,12 @@ public class DisposalPlate : ItemPlate
     bool isTransferCycleActive = false;
     IEnumerator TransferCycle(Collider collider)
     {
-        PlayerInventory inventory = collider.gameObject.GetComponent<PlayerInventory>();
+        PlayerInventory playerInventory = collider.gameObject.GetComponent<PlayerInventory>();
 
         foreach (Structures.ResourceType resourceType in Structures.AllResourceTypes)
         {
-            InventorySlot playerResourceSlot = inventory.GetResourceSlot(resourceType);
-            Transform playerResourceTransform = inventory.GetResourceTransform(resourceType);
+            InventorySlot playerResourceSlot = playerInventory.GetResourceSlot(resourceType);
+            Transform playerResourceTransform = playerInventory.GetResourceTransform(resourceType);
 
             if (playerResourceSlot.ItemsCount == 0)
                 continue;
@@ -59,6 +59,7 @@ public class DisposalPlate : ItemPlate
 
                 yield return null;
             }
+            playerInventory.GetResourceSlot(resourceType); // Dumb UI fix...
         }
         isTransferCycleActive = false;
     }

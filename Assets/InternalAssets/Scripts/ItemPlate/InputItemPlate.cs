@@ -64,6 +64,7 @@ public class InputItemPlate : ItemPlate
 
                 yield return null;
             }
+            playerInventory.GetResourceSlot(plateResourceSlot.Key); // Dumb UI fix...
         }
         isTransferCycleActive = false;
     }

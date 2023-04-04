@@ -62,6 +62,7 @@ public class OutputItemPlate : ItemPlate
                 item.gameObject.transform.parent = playerResourceTransform;
                 playerResourceSlot.PushItem(item);
             }
+            playerInventory.GetResourceSlot(plateResourceSlot.Key); // Dumb UI fix...
         }
         isTransferCycleActive = false;
     }

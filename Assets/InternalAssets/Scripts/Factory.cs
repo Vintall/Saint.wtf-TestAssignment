@@ -105,7 +105,7 @@ public class Factory : MonoBehaviour
             for (int i = 0; i < product.Quantity; ++i)
             {
                 ResourceItem item = ResourcesPool.PullResource(product.Type);
-                Debug.Log(item);
+                //Debug.Log(item);
 
                 item.gameObject.transform.position = transform.position;
                 item.gameObject.transform.parent = outputPlate.transform;
